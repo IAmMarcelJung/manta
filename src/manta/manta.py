@@ -2,6 +2,7 @@ import yaml
 from amaranth import *
 
 from manta.ethernet import EthernetInterface
+from manta.ready_valid import ReadyValidInterface
 from manta.io_core import IOCore
 from manta.logic_analyzer import LogicAnalyzerCore
 from manta.memory_core import MemoryCore
@@ -63,7 +64,8 @@ class Manta(Elaboratable):
 
         elif "ethernet" in config:
             manta.interface = EthernetInterface.from_config(config["ethernet"])
-
+        elif "ready_valid" in config:
+            manta.interface = ReadyValidInterface.from_config(config["ready_valid"])
         # Add cores
         for name, attrs in config["cores"].items():
             if attrs["type"] == "io":
@@ -157,6 +159,9 @@ class Manta(Elaboratable):
 
             if isinstance(self.interface, EthernetInterface):
                 config["ethernet"] = self.interface.to_config()
+
+            if isinstance(self.interface, ReadyValidInterface):
+                config["ready_valid"] = self.interface.to_config()
 
         import yaml
 

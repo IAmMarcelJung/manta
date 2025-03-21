@@ -6,10 +6,12 @@ from manta.logic_analyzer.capture import LogicAnalyzerCapture, LogicAnalyzerPlay
 from manta.manta import Manta
 from manta.memory_core import MemoryCore
 from manta.uart import UARTInterface
+from manta.ready_valid import ReadyValidInterface
 
 __all__ = [
     "Manta",
     "UARTInterface",
+    "ReadyValidInterface",
     "EthernetInterface",
     "LogicAnalyzerCore",
     "TriggerModes",
