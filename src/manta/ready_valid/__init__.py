@@ -1,3 +1,4 @@
+import time
 from amaranth import *
 from serial import Serial
 
@@ -134,7 +135,7 @@ class ReadyValidInterface(Elaboratable):
 
     @property
     def clock_freq(self):
-        return self._clk_freq
+        return self._clock_freq
 
     def read(self, addrs):
         """
@@ -157,34 +158,39 @@ class ReadyValidInterface(Elaboratable):
         # responses instantly after it's received a request.
 
         ser = self._get_serial_device()
-        addr_chunks = split_into_chunks(addrs, self._chunk_size)
+        # addr_chunks = split_into_chunks(addrs, self._chunk_size)
         data = []
 
-        for addr_chunk in addr_chunks:
+        for addr in addrs:
             # Encode addrs into read requests
-            bytes_out = "".join([f"R{a:04X}\r\n" for a in addr_chunk])
+            # bytes_out = "".join([f"R{a:04X}\r\n" for a in addr])
+            byte_out = f"R{addr:04X}\r\n"
 
             # Add a \n after every N packets, see:
             # https://github.com/fischermoseley/manta/issues/18
-            bytes_out = split_into_chunks(bytes_out, 7 * self._stall_interval)
-            bytes_out = "\n".join(bytes_out)
-
-            ser.write(bytes_out.encode("ascii"))
+            # bytes_out = split_into_chunks(bytes_out, 7 * self._stall_interval)
+            # bytes_out = "\n".join(bytes_out)
+            # bytes_out = "".join(bytes_out)
+            print(f"Out: {byte_out}")
+            # time.sleep(0.1)
+            ser.reset_input_buffer()
+            ser.write(byte_out.encode("ascii"))
 
             # Read responses have the same length as read requests
-            bytes_expected = 7 * len(addr_chunk)
-            bytes_in = ser.read(bytes_expected)
-            print(bytes_in)
+            bytes_expected = 7
+            if "R" in byte_out:
+                bytes_in = ser.read(bytes_expected)
+                print(f"In: {bytes_in}")
 
-            if len(bytes_in) != bytes_expected:
-                raise ValueError(
-                    f"Only got {len(bytes_in)} out of {bytes_expected} bytes."
-                )
+                if len(bytes_in) != bytes_expected:
+                    raise ValueError(
+                        f"Only got {len(bytes_in)} out of {bytes_expected} bytes."
+                    )
 
-            # Split received bytes into individual responses and decode
-            responses = split_into_chunks(bytes_in, 7)
-            data_chunk = [self._decode_read_response(r) for r in responses]
-            data += data_chunk
+                # Split received bytes into individual responses and decode
+                responses = split_into_chunks(bytes_in, 7)
+                data_chunk = [self._decode_read_response(r) for r in responses]
+                data += data_chunk
 
         return data
 

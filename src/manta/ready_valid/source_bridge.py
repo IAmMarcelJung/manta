@@ -1,7 +1,7 @@
 from amaranth import *
 from amaranth.lib.data import ArrayLayout
 from amaranth.lib.enum import IntEnum
-from manta.utils import *
+from manta.utils import InternalBus
 
 
 class States(IntEnum):
